@@ -5,7 +5,7 @@ let epiData = epi;
 let ipsData = ips;
 
 let getSpecification = () => {
-    return "2.0.3-questionnaire-banner";
+    return "1.0.0-preadmission-banner";
 };
 //document, htmlData, bannerHTML
 //
@@ -42,7 +42,7 @@ const insertQuestionnaireLink = (listOfCategories, language, document, response)
                 const link = document.createElement("a");
                 link.setAttribute("href", linkHTML);
                 link.setAttribute("target", "_blank");
-                link.setAttribute("class", "questionnaire-lens");
+                link.setAttribute("class", "preadmission-lens");
 
                 if (shouldAppend) {
                     // Append the link as a new element inside the existing element
@@ -59,6 +59,7 @@ const insertQuestionnaireLink = (listOfCategories, language, document, response)
         }
     });
 
+    console.log (foundCategory);
     // No matching category tags → inject banner at top
     if (!foundCategory) {
 
@@ -66,51 +67,160 @@ const insertQuestionnaireLink = (listOfCategories, language, document, response)
 
         if (language?.startsWith("pt")) {
             bannerDiv.innerHTML = `
-       <div class="alert-banner questionnaire-lens" style="background-color:#ffdddd;padding:1em;border:1px solid #ff8888;margin-bottom:1em;">
-  ⚠️ Este medicamento pode causar efeitos secundários de alto risco.
-  <a href="${linkHTML}" target="_blank" style="margin-left: 1em;">Preencher questionário de segurança</a>
+<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
+  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
+
+  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
+
+  <ul style="margin-top: 1em; margin-bottom: 1em;">
+    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
+    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
+    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
+    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
+    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
+    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
+    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
+  </ul>
+
+  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
+    🚨 Contact Emergency Support
+  </button>
 </div>
       `;
 
         } else if (language?.startsWith("en")) {
             bannerDiv.innerHTML = `
-        <div class="alert-banner questionnaire-lens" style="background-color:#ffdddd;padding:1em;border:1px solid #ff8888;margin-bottom:1em;">
-          ⚠️ This medication may cause high-risk side effects.
-          <a href="${linkHTML}" target="_blank" style="margin-left: 1em;">Fill out safety questionnaire</a>
-        </div>
+<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
+  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
+
+  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
+
+  <ul style="margin-top: 1em; margin-bottom: 1em;">
+    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
+    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
+    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
+    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
+    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
+    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
+    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
+  </ul>
+
+  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
+    🚨 Contact Emergency Support
+  </button>
+</div>
       `;
 
         } else if (language?.startsWith("es")) {
             bannerDiv.innerHTML = `
-       <div class="alert-banner questionnaire-lens" style="background-color:#ffdddd;padding:1em;border:1px solid #ff8888;margin-bottom:1em;">
-  ⚠️ Este medicamento puede causar efectos secundarios de alto riesgo.
-  <a href="${linkHTML}" target="_blank" style="margin-left: 1em;">Rellenar cuestionario de seguridad</a>
+<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
+  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
+
+  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
+
+  <ul style="margin-top: 1em; margin-bottom: 1em;">
+    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
+    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
+    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
+    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
+    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
+    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
+    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
+  </ul>
+
+  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
+    🚨 Contact Emergency Support
+  </button>
 </div>
       `;
         } else if (language?.startsWith("da")) {
             bannerDiv.innerHTML = `
-      <div class="alert-banner questionnaire-lens" style="background-color:#ffdddd;padding:1em;border:1px solid #ff8888;margin-bottom:1em;">
-  ⚠️ Denne medicin kan forårsage alvorlige bivirkninger.
-  <a href="${linkHTML}" target="_blank" style="margin-left: 1em;">Udfyld sikkerhedsspørgeskema</a>
+<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
+  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
+
+  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
+
+  <ul style="margin-top: 1em; margin-bottom: 1em;">
+    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
+    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
+    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
+    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
+    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
+    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
+    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
+  </ul>
+
+  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
+    🚨 Contact Emergency Support
+  </button>
 </div>
       `;
         } else {
             bannerDiv.innerHTML = `
-        <div class="alert-banner questionnaire-lens" style="background-color:#ffdddd;padding:1em;border:1px solid #ff8888;margin-bottom:1em;">
-          ⚠️ This medication may cause high-risk side effects.
-          <a href="${linkHTML}" target="_blank" style="margin-left: 1em;">Fill out safety questionnaire</a>
-        </div>
+<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
+  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
+
+  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
+
+  <ul style="margin-top: 1em; margin-bottom: 1em;">
+    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
+    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
+    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
+    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
+    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
+    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
+    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
+  </ul>
+
+  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
+    🚨 Contact Emergency Support
+  </button>
+</div>
       `;
 
         }
-
-
 
         const body = document.querySelector("body");
         if (body) {
             body.insertBefore(bannerDiv, body.firstChild);
         }
     }
+
+    // ✅ Add the emergency script once, only if not already present
+    if (!document.getElementById("call-emergency-script")) {
+        const script = document.createElement("script");
+        script.id = "call-emergency-script";
+        script.type = "text/javascript";
+        script.textContent = `
+      function callEmergencySupport() {
+        fetch("https://your-api.example.com/emergency", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            patientId: "123456",
+            drug: "Furosemide",
+            condition: "Heart Failure",
+            timestamp: new Date().toISOString(),
+            reason: "Emergency reaction reported via ePI alert"
+          })
+        })
+        .then(response => {
+          if (response.ok) {
+            alert("Emergency support has been notified.");
+          } else {
+            alert("Could not contact support. Please call emergency services directly.");
+          }
+        })
+        .catch(() => {
+          alert("Network error. Please call emergency services directly.");
+        });
+      }
+    `;
+        document.body.appendChild(script);
+    }
+
 
     // Clean head (same as your original logic)
     if (document.getElementsByTagName("head").length > 0) {
@@ -138,7 +248,7 @@ let enhance = async () => {
     if (!epiData || !epiData.entry || epiData.entry.length === 0) {
         throw new Error("ePI is empty or invalid.");
     }
-    let listOfCategoriesToSearch = ["grav-3"]; //what to look in extensions -made up code because there is none
+    let listOfCategoriesToSearch = [{ "code": "grav-5", "system": "https://www.gravitatehealth.eu/sid/doc" }]; //what to look in extensions -made up code because there is none
 
     // Match lists
     const BUNDLE_IDENTIFIER_LIST = ["epibundle-123", "epibundle-abc"];
@@ -209,7 +319,8 @@ let enhance = async () => {
                             (coding) => {
                                 console.log("Extension: " + element.extension[0].valueString + ":" + coding.code)
                                 // Check if the code is in the list of categories to search
-                                if (listOfCategoriesToSearch.includes(coding.code)) {
+                                if (listOfCategoriesToSearch.some(item => item.code === coding.code && item.system === coding.system)) {
+                                    console.log("Found", element.extension[0].valueString)
                                     // Check if the category is already in the list of categories
                                     categories.push(element.extension[0].valueString);
                                 }

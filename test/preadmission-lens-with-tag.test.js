@@ -14,7 +14,7 @@ global.document = dom.window.document;
 
 let annotation;
 beforeAll(() => {
-  const scriptContent = fs.readFileSync(path.join(__dirname, "../questionnaire-lens.js"), "utf-8");
+  const scriptContent = fs.readFileSync(path.join(__dirname, "../preadmission-lens.js"), "utf-8");
 
   const context = {
     console,
@@ -40,10 +40,10 @@ beforeAll(() => {
 
 describe("Questionnaire adding Annotation Script (non-invasive)", () => {
   test("should return version string", () => {
-    expect(annotation.getSpecification()).toBe("2.0.3-questionnaire-banner");
+    expect(annotation.getSpecification()).toBe("1.0.0-preadmission-banner");
   });
 
-  test("should return enhanced HTML containing questionaire link", async () => {
+  test("should return enhanced HTML containing questionaire link inside a TAG", async () => {
     const result = await annotation.enhance();
 
     // Ensure output directory exists
