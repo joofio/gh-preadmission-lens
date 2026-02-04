@@ -3,38 +3,168 @@ let htmlData = html;
 
 let epiData = epi;
 let ipsData = ips;
+let lang = "";
 
+// Function to get the lens specification
 let getSpecification = () => {
     return "1.0.0-preadmission-banner";
 };
-//document, htmlData, bannerHTML
-//
-const insertQuestionnaireLink = (listOfCategories, language, document, response) => {
 
-    if (language?.startsWith("pt")) {
-        linkHTML = "https://example.org/questionnaire/high-risk";
+// Function to get the explanation of the lens
+const getExplanation = (lang = "en") => {
+    const explanations = {
+        en: "This lens adds a warning banner for patients with heart failure taking Furosemide, and provides a link to a safety questionnaire.",
+        pt: "Esta lente adiciona um banner de aviso para pacientes com insuficiência cardíaca que tomam Furosemida e fornece um link para um questionário de segurança.",
+        es: "Esta lente agrega un banner de advertencia para pacientes con insuficiencia cardíaca que toman Furosemida y proporciona un enlace a un cuestionario de seguridad.",
+        da: "Denne linse tilføjer en advarselsbanner for patienter med hjertesvigt, der tager Furosemid, og giver et link til et sikkerhedsspørgeskema.",
+    };
+    return explanations[lang] || explanations.en;
+};
 
-    } else if (language?.startsWith("en")) {
-        linkHTML = "https://example.org/questionnaire/high-risk";
+// Function to get the report of the lens
+const getReport = (lang = "en") => {
+    return {
+        message: getExplanation(lang),
+        status: "success", // or "error" or "warning"
+    };
+};
 
-    } else if (language?.startsWith("es")) {
-        linkHTML = "https://example.org/questionnaire/high-risk";
+// Detect language from ePI
+const detectLanguage = () => {
+    epiData.entry?.forEach((entry) => {
+        const res = entry.resource;
+        if (res?.resourceType === "Composition" && res.language) {
+            lang = res.language;
+        }
+    });
 
-    } else if (language?.startsWith("da")) {
-        linkHTML = "https://example.org/questionnaire/high-risk";
-
-    } else {
-        linkHTML = "https://example.org/questionnaire/high-risk";
-
+    if (!lang && epiData.language) {
+        lang = epiData.language;
     }
+
+    if (!lang) {
+        lang = "en";
+    }
+};
+
+const getBannerHTML = (language) => {
+    const banners = {
+        en: `
+<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
+  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
+  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
+  <ul style="margin-top: 1em; margin-bottom: 1em;">
+    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
+    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
+    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
+    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
+    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
+    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
+    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
+  </ul>
+  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
+    🚨 Contact Emergency Support
+  </button>
+</div>`,
+        pt: `
+<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
+  <strong>⚠️ Aviso para pacientes com insuficiência cardíaca a tomar Furosemida</strong><br><br>
+  A furosemida ajuda a reduzir a acumulação de fluidos, mas em alguns casos pode causar efeitos secundários graves que requerem atenção médica imediata. Pare de tomar e procure atendimento de emergência se sentir algum dos seguintes:
+  <ul style="margin-top: 1em; margin-bottom: 1em;">
+    <li><strong>Tonturas graves ou desmaios</strong> – pode indicar pressão arterial baixa ou perda de fluidos</li>
+    <li><strong>Cãibras musculares ou fraqueza</strong> – pode ser um sinal de baixo teor de potássio</li>
+    <li><strong>Batimento cardíaco irregular ou rápido</strong> – pode indicar um desequilíbrio eletrolítico grave</li>
+    <li><strong>Dor súbita no peito</strong> – possível complicação cardíaca</li>
+    <li><strong>Confusão ou fadiga extrema</strong> – pode sinalizar baixo teor de sódio ou desidratação</li>
+    <li><strong>Perda de audição ou zumbido nos ouvidos</strong> – raro mas grave em doses elevadas</li>
+    <li><strong>Dificuldade em respirar ou inchaço do rosto/lábios</strong> – possível reação alérgica</li>
+  </ul>
+  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
+    🚨 Contactar o Suporte de Emergência
+  </button>
+</div>`,
+        es: `
+<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
+  <strong>⚠️ Advertencia para pacientes con insuficiencia cardíaca que toman Furosemida</strong><br><br>
+  La furosemida ayuda a reducir la acumulación de líquidos, pero en algunos casos puede causar efectos secundarios graves que requieren atención médica inmediata. Deje de tomarla y busque atención de emergencia si experimenta alguno de los siguientes:
+  <ul style="margin-top: 1em; margin-bottom: 1em;">
+    <li><strong>Mareos intensos o desmayos</strong> – puede indicar presión arterial baja o pérdida de líquidos</li>
+    <li><strong>Calambres o debilidad muscular</strong> – podría ser un signo de bajo nivel de potasio</li>
+    <li><strong>Latidos cardíacos irregulares o rápidos</strong> – puede indicar un desequilibrio electrolítico grave</li>
+    <li><strong>Dolor torácico repentino</strong> – posible complicación cardíaca</li>
+    <li><strong>Confusión o fatiga extrema</strong> – puede indicar un nivel bajo de sodio o deshidratación</li>
+    <li><strong>Pérdida de audición o zumbido en los oídos</strong> – raro pero grave en dosis altas</li>
+    <li><strong>Dificultad para respirar o hinchazón de la cara/labios</strong> – posible reacción alérgica</li>
+  </ul>
+  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
+    🚨 Contactar con el Soporte de Emergencia
+  </button>
+</div>`,
+        da: `
+<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
+  <strong>⚠️ Advarsel til patienter med hjertesvigt, der tager Furosemid</strong><br><br>
+  Furosemid hjælper med at reducere væskeophobning, men i nogle tilfælde kan det forårsage alvorlige bivirkninger, der kræver øjeblikkelig lægehjælp. Stop med at tage medicinen og søg akut lægehjælp, hvis du oplever noget af følgende:
+  <ul style="margin-top: 1em; margin-bottom: 1em;">
+    <li><strong>Alvorlig svimmelhed eller besvimelse</strong> – kan indikere lavt blodtryk eller væsketab</li>
+    <li><strong>Muskelkramper eller -svaghed</strong> – kan være et tegn på lavt kalium</li>
+    <li><strong>Uregelmæssig eller hurtig hjerterytme</strong> – kan indikere en alvorlig elektrolytforstyrrelse</li>
+    <li><strong>Pludselig brystsmerter</strong> – mulig hjertekomplikation</li>
+    <li><strong>Forvirring eller ekstrem træthed</strong> – kan signalere lavt natrium eller dehydrering</li>
+    <li><strong>Høretab eller ringen for ørerne</strong> – sjælden, men alvorlig ved høje doser</li>
+    <li><strong>Vejrtrækningsbesvær eller hævelse af ansigt/læber</strong> – mulig allergisk reaktion</li>
+  </ul>
+  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
+    🚨 Kontakt Nødhjælp
+  </button>
+</div>`,
+    };
+    return banners[language] || banners.en;
+};
+
+const getEmergencyScript = () => {
+    return `
+function callEmergencySupport() {
+  fetch("https://your-api.example.com/emergency", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      patientId: "123456",
+      drug: "Furosemide",
+      condition: "Heart Failure",
+      timestamp: new Date().toISOString(),
+      reason: "Emergency reaction reported via ePI alert"
+    })
+  })
+  .then(response => {
+    if (response.ok) {
+      alert("Emergency support has been notified.");
+    } else {
+      alert("Could not contact support. Please call emergency services directly.");
+    }
+  })
+  .catch(() => {
+    alert("Network error. Please call emergency services directly.");
+  });
+}
+`;
+};
+
+const insertQuestionnaireLink = (
+    listOfCategories,
+    language,
+    document,
+    response
+) => {
+    let linkHTML = "https://example.org/questionnaire/high-risk";
     let shouldAppend = false; //for future usage
     let foundCategory = false;
-    console.log(listOfCategories)
-    console.log(listOfCategories.length)
+
     listOfCategories.forEach((className) => {
         if (
-            response.includes(`class="${className}`) ||
-            response.includes(`class='${className}`)
+            response.includes(`class="${className}"`) ||
+            response.includes(`class='${className}'`)
         ) {
             const elements = document.getElementsByClassName(className);
             for (let i = 0; i < elements.length; i++) {
@@ -59,127 +189,10 @@ const insertQuestionnaireLink = (listOfCategories, language, document, response)
         }
     });
 
-    console.log (foundCategory);
     // No matching category tags → inject banner at top
     if (!foundCategory) {
-
         const bannerDiv = document.createElement("div");
-
-        if (language?.startsWith("pt")) {
-            bannerDiv.innerHTML = `
-<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
-  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
-
-  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
-
-  <ul style="margin-top: 1em; margin-bottom: 1em;">
-    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
-    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
-    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
-    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
-    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
-    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
-    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
-  </ul>
-
-  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
-    🚨 Contact Emergency Support
-  </button>
-</div>
-      `;
-
-        } else if (language?.startsWith("en")) {
-            bannerDiv.innerHTML = `
-<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
-  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
-
-  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
-
-  <ul style="margin-top: 1em; margin-bottom: 1em;">
-    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
-    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
-    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
-    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
-    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
-    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
-    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
-  </ul>
-
-  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
-    🚨 Contact Emergency Support
-  </button>
-</div>
-      `;
-
-        } else if (language?.startsWith("es")) {
-            bannerDiv.innerHTML = `
-<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
-  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
-
-  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
-
-  <ul style="margin-top: 1em; margin-bottom: 1em;">
-    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
-    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
-    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
-    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
-    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
-    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
-    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
-  </ul>
-
-  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
-    🚨 Contact Emergency Support
-  </button>
-</div>
-      `;
-        } else if (language?.startsWith("da")) {
-            bannerDiv.innerHTML = `
-<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
-  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
-
-  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
-
-  <ul style="margin-top: 1em; margin-bottom: 1em;">
-    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
-    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
-    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
-    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
-    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
-    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
-    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
-  </ul>
-
-  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
-    🚨 Contact Emergency Support
-  </button>
-</div>
-      `;
-        } else {
-            bannerDiv.innerHTML = `
-<div class="alert-banner emergency-call preadmission-lens" style="background-color:#fff3cd;padding:1em;border:1px solid #f5c2c7;margin-bottom:1em;border-radius:5px;font-family:sans-serif;">
-  <strong>⚠️ Warning for patients with heart failure taking Furosemide</strong><br><br>
-
-  Furosemide helps reduce fluid buildup, but in some cases it may cause serious side effects that require immediate medical attention. Please stop and seek emergency care if you experience any of the following:
-
-  <ul style="margin-top: 1em; margin-bottom: 1em;">
-    <li><strong>Severe dizziness or fainting</strong> – may indicate low blood pressure or fluid loss</li>
-    <li><strong>Muscle cramps or weakness</strong> – could be a sign of low potassium</li>
-    <li><strong>Irregular or fast heartbeat</strong> – may indicate a serious electrolyte imbalance</li>
-    <li><strong>Sudden chest pain</strong> – possible cardiac complication</li>
-    <li><strong>Confusion or extreme fatigue</strong> – may signal low sodium or dehydration</li>
-    <li><strong>Hearing loss or ringing in the ears</strong> – rare but serious at high doses</li>
-    <li><strong>Trouble breathing or swelling of the face/lips</strong> – possible allergic reaction</li>
-  </ul>
-
-  <button onclick="callEmergencySupport()" style="background-color:#d9534f;color:white;padding:0.75em 1.5em;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">
-    🚨 Contact Emergency Support
-  </button>
-</div>
-      `;
-
-        }
-
+        bannerDiv.innerHTML = getBannerHTML(language);
         const body = document.querySelector("body");
         if (body) {
             body.insertBefore(bannerDiv, body.firstChild);
@@ -191,38 +204,11 @@ const insertQuestionnaireLink = (listOfCategories, language, document, response)
         const script = document.createElement("script");
         script.id = "call-emergency-script";
         script.type = "text/javascript";
-        script.textContent = `
-      function callEmergencySupport() {
-        fetch("https://your-api.example.com/emergency", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            patientId: "123456",
-            drug: "Furosemide",
-            condition: "Heart Failure",
-            timestamp: new Date().toISOString(),
-            reason: "Emergency reaction reported via ePI alert"
-          })
-        })
-        .then(response => {
-          if (response.ok) {
-            alert("Emergency support has been notified.");
-          } else {
-            alert("Could not contact support. Please call emergency services directly.");
-          }
-        })
-        .catch(() => {
-          alert("Network error. Please call emergency services directly.");
-        });
-      }
-    `;
+        script.textContent = getEmergencyScript();
         document.body.appendChild(script);
     }
 
-
-    // Clean head (same as your original logic)
+    // Clean head
     if (document.getElementsByTagName("head").length > 0) {
         document.getElementsByTagName("head")[0].remove();
     }
@@ -230,9 +216,7 @@ const insertQuestionnaireLink = (listOfCategories, language, document, response)
     // Extract HTML result
     if (document.getElementsByTagName("body").length > 0) {
         response = document.getElementsByTagName("body")[0].innerHTML;
-        console.log("Response: " + response);
     } else {
-        console.log("Response: " + document.documentElement.innerHTML);
         response = document.documentElement.innerHTML;
     }
 
@@ -244,46 +228,26 @@ const insertQuestionnaireLink = (listOfCategories, language, document, response)
 };
 
 let enhance = async () => {
-
     if (!epiData || !epiData.entry || epiData.entry.length === 0) {
         throw new Error("ePI is empty or invalid.");
     }
-    let listOfCategoriesToSearch = [{ "code": "grav-5", "system": "https://www.gravitatehealth.eu/sid/doc" }]; //what to look in extensions -made up code because there is none
+    let listOfCategoriesToSearch = [
+        { code: "grav-5", system: "https://www.gravitatehealth.eu/sid/doc" },
+    ]; //what to look in extensions -made up code because there is none
 
     // Match lists
     const BUNDLE_IDENTIFIER_LIST = ["epibundle-123", "epibundle-abc"];
     const PRODUCT_IDENTIFIER_LIST = ["CIT-204447", "RIS-197361"];
 
-
     let matchFound = false;
-    let languageDetected = null;
 
-    // 1. Check Composition.language
-    epiData.entry?.forEach((entry) => {
-        const res = entry.resource;
-        if (res?.resourceType === "Composition" && res.language) {
-            languageDetected = res.language;
-            console.log("🌍 Detected from Composition.language:", languageDetected);
-        }
-    });
-
-    // 2. If not found, check Bundle.language
-    if (!languageDetected && epiData.language) {
-        languageDetected = epiData.language;
-        console.log("🌍 Detected from Bundle.language:", languageDetected);
-    }
-
-    // 3. Fallback message
-    if (!languageDetected) {
-        console.warn("⚠️ No language detected in Composition or Bundle.");
-    }
+    detectLanguage();
 
     // Check bundle.identifier.value
     if (
         epiData.identifier &&
         BUNDLE_IDENTIFIER_LIST.includes(epiData.identifier.value)
     ) {
-        console.log("🔗 Matched ePI Bundle.identifier:", epiData.identifier.value);
         matchFound = true;
     }
 
@@ -294,7 +258,6 @@ let enhance = async () => {
             const ids = res.identifier || [];
             ids.forEach((id) => {
                 if (PRODUCT_IDENTIFIER_LIST.includes(id.value)) {
-                    console.log("💊 Matched MedicinalProductDefinition.identifier:", id.value);
                     matchFound = true;
                 }
             });
@@ -305,24 +268,33 @@ let enhance = async () => {
     // in this case, if is does not find a place, adds it to the top of the ePI
     let compositions = 0;
     let categories = [];
-    epi.entry.forEach((entry) => {
+    epiData.entry.forEach((entry) => {
         if (entry.resource.resourceType == "Composition") {
             compositions++;
             //Iterated through the Condition element searching for conditions
             entry.resource.extension.forEach((element) => {
-
                 // Check if the position of the extension[1] is correct
                 if (element.extension[1].url == "concept") {
                     // Search through the different terminologies that may be avaible to check in the condition
-                    if (element.extension[1].valueCodeableReference.concept != undefined) {
+                    if (
+                        element.extension[1].valueCodeableReference.concept !=
+                        undefined
+                    ) {
                         element.extension[1].valueCodeableReference.concept.coding.forEach(
                             (coding) => {
-                                console.log("Extension: " + element.extension[0].valueString + ":" + coding.code)
                                 // Check if the code is in the list of categories to search
-                                if (listOfCategoriesToSearch.some(item => item.code === coding.code && item.system === coding.system)) {
-                                    console.log("Found", element.extension[0].valueString)
+                                if (
+                                    listOfCategoriesToSearch.some(
+                                        (item) =>
+                                            item.code === coding.code &&
+                                            item.system === coding.system
+                                    )
+                                ) {
                                     // Check if the category is already in the list of categories
-                                    categories.push(element.extension[0].valueString);
+                                    categories.push(
+                                        element.extension[0].valueString
+                                    );
+
                                 }
                             }
                         );
@@ -336,13 +308,8 @@ let enhance = async () => {
     }
 
     if (!matchFound) {
-        console.log("ePI is not for a high-risk side effect medication");
         return htmlData;
-    }
-
-    else {
-
-
+    } else {
         let response = htmlData;
         let document;
 
@@ -351,16 +318,27 @@ let enhance = async () => {
             let { JSDOM } = jsdom;
             let dom = new JSDOM(htmlData);
             document = dom.window.document;
-            return insertQuestionnaireLink(categories, languageDetected, document, response);
-            //listOfCategories, enhanceTag, document, response
+            return insertQuestionnaireLink(
+                categories,
+                lang,
+                document,
+                response
+            );
         } else {
             document = window.document;
-            return insertQuestionnaireLink(categories, languageDetected, document, response);
+            return insertQuestionnaireLink(
+                categories,
+                lang,
+                document,
+                response
+            );
         }
-    };
+    }
 };
 
 return {
     enhance: enhance,
     getSpecification: getSpecification,
+    explanation: (language) => getExplanation(language || lang || "en"),
+    report: (language) => getReport(language || lang || "en"),
 };
